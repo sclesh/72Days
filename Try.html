@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Scrollable Wizard Letter</title>
+
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        background: radial-gradient(circle at center, #1b1b1b, #050505);
+
+        font-family: Georgia, serif;
+
+        overflow-y: auto;
+
+        padding: 50px 0;
+      }
+
+      /* SCROLL STYLE */
+
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #8b6b2f;
+        border-radius: 10px;
+      }
+
+      /* PARTICLE */
+
+      .spark {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.5;
+        animation: float 8s linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes float {
+        from {
+          transform: translateY(100vh) translateX(0);
+        }
+
+        to {
+          transform: translateY(-120vh) translateX(100px);
+        }
+      }
+
+      /* LETTER */
+
+      .letter-container {
+        perspective: 1500px;
+        margin-bottom: 50px;
+      }
+
+      .letter {
+        width: min(90vw, 850px);
+
+        min-height: 1200px;
+
+        background: linear-gradient(to bottom, #f8f1d4, #e8d7a8);
+
+        border-radius: 12px;
+
+        position: relative;
+
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+
+        transform-style: preserve-3d;
+
+        animation: openLetter 2s ease;
+
+        overflow: hidden;
+
+        padding-bottom: 120px;
+      }
+
+      @keyframes openLetter {
+        0% {
+          transform: rotateX(-90deg) scale(0.3);
+          opacity: 0;
+        }
+
+        100% {
+          transform: rotateX(0deg) scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* PAPER TEXTURE */
+
+      .letter::before {
+        content: "";
+
+        position: absolute;
+        inset: 0;
+
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.02),
+          rgba(0, 0, 0, 0.02) 2px,
+          transparent 2px,
+          transparent 4px
+        );
+
+        pointer-events: none;
+      }
+
+      /* HEADER */
+
+      .header {
+        text-align: center;
+
+        padding-top: 40px;
+
+        color: #5b3b11;
+      }
+
+      .header h1 {
+        margin: 0;
+
+        font-size: 56px;
+
+        letter-spacing: 5px;
+
+        color: gold;
+
+        text-shadow: 0 0 10px gold, 0 0 20px orange;
+      }
+
+      .header p {
+        margin-top: 8px;
+
+        font-size: 20px;
+
+        opacity: 0.8;
+      }
+
+      /* CONTENT */
+
+      .content {
+        padding: 50px 80px;
+
+        color: #3e2a12;
+
+        font-size: 25px;
+
+        line-height: 2;
+
+        white-space: pre-line;
+      }
+
+      /* SIGN */
+
+      .sign {
+        position: absolute;
+
+        right: 70px;
+        bottom: 50px;
+
+        text-align: right;
+
+        font-size: 24px;
+
+        color: #5b3b11;
+      }
+
+      /* MOBILE */
+
+      @media (max-width: 700px) {
+        .content {
+          padding: 40px;
+          font-size: 20px;
+        }
+
+        .header h1 {
+          font-size: 42px;
+        }
+
+        .sign {
+          right: 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- MAGIC PARTICLES -->
+
+    <script>
+      for (let i = 0; i < 50; i++) {
+        const s = document.createElement("div");
+
+        s.className = "spark";
+
+        s.style.left = Math.random() * 100 + "vw";
+
+        s.style.animationDuration = 4 + Math.random() * 6 + "s";
+
+        s.style.opacity = Math.random();
+
+        document.body.appendChild(s);
+      }
+    </script>
+
+    <!-- LETTER -->
+
+    <div class="letter-container">
+      <div class="letter">
+        <div class="header">
+          <h1>HOGWARTS</h1>
+
+          <p>School of Witchcraft and Wizardry</p>
+        </div>
+
+        <div class="content">
+          Dear Wizard, We are pleased to inform you that your magical abilities
+          have been recognized. The gates of Hogwarts are now open for your
+          arrival. Please prepare your wand, spell books, and courage.
+          ━━━━━━━━━━━━━━━━━━━━━━ This letter can contain VERY LONG content. You
+          can now scroll down smoothly like reading an actual magical document.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco. Duis aute irure dolor
+          in reprehenderit in voluptate velit esse cillum dolore. Excepteur sint
+          occaecat cupidatat non proident. ━━━━━━━━━━━━━━━━━━━━━━ Chapter I —
+          The Beginning Many years ago, magic existed hidden from the ordinary
+          world. Only those chosen by fate could unlock its secrets. The spell
+          "Alohomora" was one of the ancient keys. ━━━━━━━━━━━━━━━━━━━━━━
+          Chapter II — The Wizard You have now awakened the ancient seal. The
+          envelope recognized your voice and intention. Magic flows through your
+          words. Continue scrolling... ━━━━━━━━━━━━━━━━━━━━━━ END OF LETTER
+        </div>
+
+        <div class="sign">
+          ✨ Headmaster
+
+          <br /><br />
+
+          Albus Dumbledore
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

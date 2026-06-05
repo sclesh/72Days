@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>72 Days</title>
+
+    <!-- THREE JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background: #050505;
+        font-family: Arial;
+        color: white;
+      }
+
+      /* ========================= */
+      /* MANGA READER */
+      /* ========================= */
+
+      .manga-reader {
+        width: 100%;
+        background: #050505;
+        position: relative;
+        z-index: 20;
+      }
+
+       p {
+        text-align: center;
+      }
+
+      .navbar {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        background: #161616;
+        padding: 18px;
+        text-align: center;
+        z-index: 50;
+        border-bottom: 1px solid #333;
+      }
+
+      .navbar h1 {
+        margin: 0;
+        color: #ff4444;
+        font-size: 22px;
+        text-align: center ;
+      }
+
+      .container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-bottom: 100px;
+      }
+
+      .manga-page {
+        width: 90%;
+        max-width: 900px;
+        margin-top: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+      }
+
+      .manga-page img {
+        width: 100%;
+        display: block;
+      }
+
+      /* ========================= */
+      /* MAGIC BOX */
+      /* ========================= */
+
+      #boxSection {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: #050505;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100dvh;
+      }
+
+      canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        z-index: 1;
+      }
+
+      #ui {
+        position: absolute;
+        top: 20px;
+        width: 100%;
+        text-align: center;
+        z-index: 20;
+        pointer-events: none;
+      }
+
+      #ui h1 {
+        font-size: 38px;
+        margin-bottom: 10px;
+        text-shadow: 0 0 20px gold;
+      }
+
+      button {
+        padding: 14px 28px;
+        font-size: 18px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        background: linear-gradient(45deg, #ffcc00, #ff8800);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 0 20px rgba(255, 200, 0, 0.5);
+        transition: 0.3s;
+        pointer-events: auto;
+      }
+
+      button:hover {
+        transform: scale(1.05);
+      }
+
+      #spoken {
+        margin-top: 15px;
+        font-size: 22px;
+      }
+
+      #status {
+        margin-top: 20px;
+        font-size: 26px;
+        font-weight: bold;
+      }
+
+      /* PARTICLE */
+
+      .spark {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.5;
+        animation: float 8s linear infinite;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      @keyframes float {
+        from {
+          transform: translateY(100vh) translateX(0);
+        }
+
+        to {
+          transform: translateY(-120vh) translateX(100px);
+        }
+      }
+
+      /* LETTER PAGE */
+
+      .page {
+        position: fixed;
+        inset: 0;
+        display: none;
+        justify-content: center;
+        align-items: flex-start;
+        overflow-y: auto;
+        padding: 60px 20px;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.7);
+        perspective: 2000px;
+      }
+
+      .close {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        font-size: 40px;
+        cursor: pointer;
+        z-index: 200;
+        color: white;
+      }
+
+      .paper-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        perspective: 2200px;
+      }
+
+      .paper {
+        width: min(92vw, 850px);
+        min-height: 1200px;
+        background: linear-gradient(to bottom, #f8f1d4, #e8d7a8);
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        padding-bottom: 120px;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.45),
+          0 0 40px rgba(0, 0, 0, 0.7);
+        transform-origin: center top;
+        animation: paperReveal 2.5s cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      @keyframes paperReveal {
+        from {
+          opacity: 0;
+          transform: translateY(50px) scale(0.96);
+          filter: blur(8px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          filter: blur(0);
+        }
+      }
+
+      .paper::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.02),
+          rgba(0, 0, 0, 0.02) 2px,
+          transparent 2px,
+          transparent 4px
+        );
+        pointer-events: none;
+      }
+
+      .header {
+        text-align: center;
+        padding-top: 40px;
+        color: #5b3b11;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 56px;
+        letter-spacing: 5px;
+        color: gold;
+        text-shadow:
+          0 0 10px gold,
+          0 0 20px orange;
+      }
+
+      .header p {
+        margin-top: 8px;
+        font-size: 20px;
+        opacity: 0.8;
+      }
+
+      /* CONTENT */
+
+      .content {
+        padding: 60px 80px;
+        color: #3e2a12;
+        font-size: 24px;
+        line-height: 2.1;
+      }
+
+      .content p {
+        margin-bottom: 28px;
+      }
+
+      .content h2 {
+        margin-top: 60px;
+        margin-bottom: 25px;
+
+        font-size: 34px;
+
+        color: #6d4718;
+
+        text-shadow: 0 0 8px rgba(255, 180, 50, 0.25);
+      }
+
+      .content blockquote {
+        margin: 40px 0;
+
+        padding-left: 25px;
+
+        border-left: 4px solid rgba(120, 80, 30, 0.5);
+
+        font-style: italic;
+
+        opacity: 0.85;
+      }
+
+      .highlight {
+        text-align: center;
+
+        font-size: 28px;
+
+        margin: 60px 0;
+
+        font-style: italic;
+      }
+
+      .signature {
+        margin-top: 90px;
+
+        text-align: right;
+
+        font-size: 28px;
+
+        font-style: italic;
+      }
+
+      /* FINISH */
+
+      .finishWrap {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 80px 20px;
+      }
+
+      .finishBtn {
+        padding: 18px 40px;
+        font-size: 22px;
+      }
+
+      /* ENDING */
+
+      .ending-page {
+        width: 100%;
+        min-height: 100vh;
+        background: #050505;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        padding: 50px 20px;
+      }
+
+      .ending-page img {
+        width: 90%;
+        max-width: 900px;
+        border-radius: 12px;
+      }
+
+      .ending-page h1 {
+        margin-top: 30px;
+      }
+
+      @media (max-width: 768px) {
+        .content {
+          padding: 32px;
+          font-size: 18px;
+          line-height: 1.9;
+        }
+
+        .header h1 {
+          font-size: 34px;
+        }
+
+        #ui h1 {
+          font-size: 28px;
+        }
+
+        button {
+          font-size: 16px;
+          padding: 12px 22px;
+        }
+
+        .highlight {
+          font-size: 22px;
+        }
+
+        .signature {
+          font-size: 22px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ======================= -->
+    <!-- PARTICLES -->
+    <!-- ======================= -->
+
+    <script>
+      for (let i = 0; i < 60; i++) {
+        const s = document.createElement("div");
+
+        s.className = "spark";
+
+        s.style.left = Math.random() * 100 + "vw";
+        s.style.top = Math.random() * 100 + "vh";
+
+        s.style.animationDuration = 4 + Math.random() * 6 + "s";
+
+        s.style.opacity = Math.random();
+
+        document.body.appendChild(s);
+      }
+    </script>
+
+    <!-- ======================= -->
+    <!-- MANGA READER -->
+    <!-- ======================= -->
+
+    <div class="manga-reader">
+      <div class="navbar">
+        <h1>72 Days</h1>
+      </div>
+
+      </div>
+      <p>Baca dari kanan ke kiri</p> 
+      </div>
+
+      <div class="container">
+        <div class="manga-page">
+          <img src="Comics/1.jpg" />
+        </div>
+
+        <div class="manga-page">
+          <img src="Comics/2.jpg" />
+        </div>
+
+        <div class="manga-page">
+          <img src="Comics/3.jpg" />
+        </div>
+
+        <div class="manga-page">
+          <img src="Comics/4.jpg" />
+        </div>
+
+        <div class="manga-page">
+          <img src="Comics/5.jpg" />
+        </div>
+
+        <div class="manga-page">
+          <img src="Comics/6.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/7.jpg" />
+        </div>
+
+        <div class="manga-page">
+          <img src="Comics/8.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/9.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/10.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/11.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/12.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/13.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/14.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/15.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/16.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/17.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/18.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/19.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/20.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/21.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/22.jpg" />
+        </div>
+
+         <div class="manga-page">
+          <img src="Comics/23.jpg" />
+        </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- MAGIC BOX -->
+    <!-- ======================= -->
+
+    <section id="boxSection">
+      <div id="ui">
+        <h1>Buka?</h1>
+
+        <button id="startBtn">Ucap Mantra</button>
+
+        <div id="spoken"></div>
+
+        <div id="status"></div>
+      </div>
+    </section>
+
+    <!-- ======================= -->
+    <!-- LETTER PAGE -->
+    <!-- ======================= -->
+
+    <div class="page" id="page">
+      <div class="close" id="close">✖</div>
+
+      <div class="paper-container">
+        <div class="paper">
+          <div class="header">
+            <h1>HAPPE BIRTHDAE</h1>
+
+            <p>My friend who quietly slipped into my life</p>
+          </div>
+
+          <div class="content">
+            <p>
+              I don't even know what I'm making. I've been working on this since
+              the 29th just for this message. I'm really bad at writing and
+              making things up, and I'm scared my words won't fully express how
+              I feel. That's why I kept delaying it.
+            </p>
+
+            <p>
+              So here I am, writing whatever I can. Maybe it's plain and boring,
+              but at least I'm making something in the end, even if it doesn't
+              feel perfect enough.
+            </p>
+
+            <blockquote>
+              You said, “I'm sorry I couldn't prepare a well-deserved present in
+              time.”
+            </blockquote>
+
+            <p>
+              Nah, you're wrong. This is already more than enough. I never even
+              expected someone would send me a letter like this for my birthday.
+              You're the only one.
+            </p>
+
+            <p>
+              I'm not really someone who celebrates birthdays. Honestly, I'm
+              already grateful if someone even remembers it.
+            </p>
+
+            <p>
+              But sometimes I'm impressed by people who give small gifts to
+              others on their birthdays. I never really thought about doing
+              things like that before I received small gifts myself, even from
+              people who weren't that close to me.
+            </p>
+
+            <blockquote>
+              And said, “and then becoming someone who's important to me.”
+            </blockquote>
+
+            <p>
+              I never expected you to think of me that way. I don't really see
+              myself as someone truly important in your life.
+            </p>
+
+            <p>
+              We both have our own real lives, especially now that we're getting
+              busier with college and everything.
+            </p>
+
+            <p>
+              Maybe our relationship is just sharing stories and experiences
+              online, but honestly, I think that makes sense.
+            </p>
+
+            <p>
+              It feels strange lately because I'm too stupid at managing my
+              time, and we don't talk as much anymore. Dunno.
+            </p>
+
+            <blockquote>
+              Also said, “I'm surprised at how you found them cool and not
+              weird, unlike others.”
+            </blockquote>
+
+            <p>
+              After entering college, I realized that I'm actually someone who
+              likes listening to people talk about their hobbies and interests.
+              It sounds fun and cool to me.
+            </p>
+
+            <p>
+              I often bring up hobbies just so conversations can keep going, and
+              I'm happy that this small habit of mine could make you happy too.
+            </p>
+
+            <p class="highlight">
+              Sometimes I also wish I could meet someone like myself.
+              <br />
+              And maybe I already did.
+              <br />
+              It's you.
+            </p>
+
+            <p>
+              Sometimes I get bored, and then you suddenly appear through chat.
+              Talking about random little things from the videos we send each
+              other is actually really fun.
+            </p>
+
+            <p>
+              I also never expected we could get this close(?) even though we
+              only met online.
+            </p>
+
+            <p>
+              Just so you know, I'm not this fun in real life unless I'm already
+              close to someone. I'm not an extrovert, just a shy person
+              pretending to be cool.
+            </p>
+
+            <p>
+              I hope we can keep being friends even without truly knowing each
+              other's real selves.
+            </p>
+
+            <p>
+              Oh yeah, I also like it when you ask me to choose things for you,
+              even though sometimes I don't even know what those things are.
+            </p>
+
+            <h2>My wishes for you</h2>
+
+            <p>
+              I hope whatever problems you're dealing with right now will find
+              their way out soon.
+            </p>
+
+            <p>
+              I hope you keep meeting good people who support everything you do
+              — your hobbies, your studies, everything.
+            </p>
+
+            <p>
+              I've had some struggles this year too, but there was a light that
+              kept my mind sane.
+            </p>
+
+            <p>
+              And maybe one part of that light came from your wishes for me in
+              the birthday letter you wrote.
+            </p>
+
+            <p class="highlight">Big thanks.</p>
+
+            <p>May I ask something?</p>
+
+            <p>
+              Why does the song “Mary on a Cross” remind you of me? Is it
+              because of the vibes? Or something else?
+            </p>
+
+            <p>
+              Or maybe you just happened to listen to it while drawing Lucien?
+            </p>
+
+            <p>
+              I don't know what song carries your vibes, but the one song that
+              always reminds me of you is
+              <i>“Pretty Girl.”</i>
+            </p>
+
+            <p>
+              I honestly don't know what I wrote here, but this is my birthday
+              present for you.
+            </p>
+
+            <p>
+              Yeah, just something you can read and look at, not something
+              physical.
+            </p>
+
+            <p>
+              This is also my first comic, so sorry if it's confusing or kinda
+              freaky.
+            </p>
+
+            <p>
+              I'm really bad at writing, so I tried telling the story through
+              drawings instead.
+            </p>
+
+            <p>
+              Actually, this comic is supposed to tell the story about my
+              laziness and all my assignments, which made me neglect my promise.
+            </p>
+
+            <p>Though it's not as dramatic as the comic makes it look.</p>
+
+            <p>If there's anything you don't understand, just ask me hehe.</p>
+
+            <p class="highlight">But I hope you like it.</p>
+
+            <div class="signature">— Lucien</div>
+
+            <div class="finishWrap">
+              <button class="finishBtn" id="finishBtn">Selesai baca</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- ENDING -->
+    <!-- ======================= -->
+
+    <div class="ending-page" id="endingPage">
+      <img src="Comics/24.jpg" />
+
+      <h1>The End ✨</h1>
+    </div>
+
+    <!-- ======================= -->
+    <!-- SCRIPT -->
+    <!-- ======================= -->
+
+    <script>
+      // ===================================
+      // THREE JS
+      // ===================================
+
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+
+      camera.position.z = 8;
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false,
+      });
+
+      renderer.setClearColor(0x050505, 1);
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      document.getElementById("boxSection").appendChild(renderer.domElement);
+
+      // ===================================
+      // LIGHT
+      // ===================================
+
+      const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+
+      scene.add(ambient);
+
+      const light = new THREE.PointLight(0xffddaa, 2);
+
+      light.position.set(5, 5, 5);
+
+      scene.add(light);
+
+      // ===================================
+      // GROUP
+      // ===================================
+
+      const cubeGroup = new THREE.Group();
+
+      scene.add(cubeGroup);
+
+      // ===================================
+      // MATERIAL
+      // ===================================
+
+      const material = new THREE.MeshPhysicalMaterial({
+        color: 0x5a3214,
+        metalness: 0.2,
+        roughness: 0.4,
+        clearcoat: 0.4,
+      });
+
+      // ===================================
+      // BODY
+      // ===================================
+
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(2.5, 1.7, 2.5),
+        material,
+      );
+
+      cubeGroup.add(body);
+
+      // ===================================
+      // LID
+      // ===================================
+
+      const lidGeometry = new THREE.BoxGeometry(2.6, 0.25, 2.6);
+
+      lidGeometry.translate(0, 0, 1.3);
+
+      const lid = new THREE.Mesh(lidGeometry, material);
+
+      lid.position.y = 0.95;
+
+      lid.position.z = -1.3;
+
+      cubeGroup.add(lid);
+
+      // ===================================
+      // GOLD FRAME
+      // ===================================
+
+      const edgeMaterial = new THREE.LineBasicMaterial({
+        color: 0xffcc55,
+      });
+
+      const edge = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(2.5, 1.7, 2.5)),
+        edgeMaterial,
+      );
+
+      cubeGroup.add(edge);
+
+      // ===================================
+      // MAGIC LIGHT
+      // ===================================
+
+      const glow = new THREE.PointLight(0xffcc55, 1.5, 6);
+
+      glow.position.y = 0.5;
+
+      cubeGroup.add(glow);
+
+      // ===================================
+      // LETTER
+      // ===================================
+
+      const letter = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.5, 2.2),
+        new THREE.MeshBasicMaterial({
+          color: 0xf8f1d4,
+          side: THREE.DoubleSide,
+        }),
+      );
+
+      letter.position.y = -0.2;
+      letter.position.z = 0.7;
+      letter.visible = false;
+
+      cubeGroup.add(letter);
+
+      // ===================================
+      // LETTER TEXTURE
+      // ===================================
+
+      const canvas = document.createElement("canvas");
+
+      canvas.width = 512;
+      canvas.height = 512;
+
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#f8f1d4";
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = "#3e2a12";
+
+      ctx.font = "bold 42px Arial";
+      ctx.fillText("HAPPY BIRTHDAY", 70, 180);
+
+      ctx.font = "28px Arial";
+      ctx.fillText("CLICK LETTER", 140, 280);
+
+      letter.material.map = new THREE.CanvasTexture(canvas);
+
+      // ===================================
+      // FLOAT
+      // ===================================
+
+      let time = 0;
+
+      // ===================================
+      // DRAG ROTATE 360
+      // ===================================
+
+      let isDragging = false;
+
+      let prevX = 0;
+      let prevY = 0;
+
+      window.addEventListener("mousedown", (e) => {
+        isDragging = true;
+
+        prevX = e.clientX;
+        prevY = e.clientY;
+      });
+
+      window.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+          let dx = e.clientX - prevX;
+          let dy = e.clientY - prevY;
+
+          cubeGroup.rotation.y += dx * 0.01;
+          cubeGroup.rotation.x += dy * 0.01;
+
+          prevX = e.clientX;
+          prevY = e.clientY;
+        }
+      });
+
+      // ===================================
+      // OPEN
+      // ===================================
+
+      let opened = false;
+
+      // ===================================
+      // ANIMATE
+      // ===================================
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        time += 0.02;
+
+        cubeGroup.position.y = Math.sin(time) * 0.2;
+
+        cubeGroup.rotation.y += 0.003;
+
+        glow.intensity = 1.5 + Math.sin(time * 3) * 0.3;
+
+        if (opened) {
+          lid.rotation.x += (Math.PI / 1.9 - lid.rotation.x) * 0.08;
+
+          if (letter.position.y < 2) {
+            letter.position.y += 0.025;
+          }
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      // ===================================
+      // SPEECH
+      // ===================================
+
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      const recognition = new SpeechRecognition();
+
+      recognition.lang = "en-US";
+
+      const spoken = document.getElementById("spoken");
+
+      const status = document.getElementById("status");
+
+      document.getElementById("startBtn").onclick = () => {
+        spoken.innerHTML = "...";
+        recognition.start();
+      };
+
+      recognition.onresult = (event) => {
+        let text = event.results[0][0].transcript;
+
+        spoken.innerHTML = text;
+
+        let kata = text.toLowerCase().replace(/\s/g, "");
+
+        const mantra = ["alohomora", "alohamora", "aloha mora"];
+
+        let benar = mantra.some((m) => kata.includes(m.replace(/\s/g, "")));
+
+        if (benar) {
+          // status.innerHTML = "TERBUKA!";
+          //status.style.color = "lime";
+
+          opened = true;
+
+          letter.visible = true;
+        } else {
+          //status.innerHTML = "MANTRAMU SALAH!";
+          //status.style.color = "red";
+        }
+      };
+
+      // ===================================
+      // CLICK LETTER
+      // ===================================
+
+      const raycaster = new THREE.Raycaster();
+
+      const mouse = new THREE.Vector2();
+
+      renderer.domElement.addEventListener("click", (event) => {
+        if (!opened || !letter.visible) return;
+
+        const rect = renderer.domElement.getBoundingClientRect();
+
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        const intersects = raycaster.intersectObject(letter);
+
+        if (intersects.length > 0) {
+          const page = document.getElementById("page");
+
+          page.style.display = "flex";
+        }
+      });
+
+      // ===================================
+      // CLOSE PAGE
+      // ===================================
+
+      document.getElementById("close").onclick = () => {
+        document.getElementById("page").style.display = "none";
+      };
+
+      // ===================================
+      // FINISH BUTTON
+      // ===================================
+
+      document.getElementById("finishBtn").onclick = () => {
+        document.getElementById("page").style.display = "none";
+
+        document.getElementById("endingPage").style.display = "flex";
+
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        });
+      };
+
+      // ===================================
+      // RESIZE
+      // ===================================
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>
